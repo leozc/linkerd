@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package io.buoyant.namerd;
+option java_outer_classname = "NamerdGrpc";
+
+/*
+ * Common types
+ */
+
+message Path {
+  repeated bytes elems = 1;
+}
+
+message PathNameTree {
+  message Neg {}
+  message Fail {}
+  message Empty {}
+
+  message Alt {
+    repeated PathNameTree trees = 1;
+  }
+
+  message Union {
+    message Weighted {
+      PathNameTree tree = 1;
+      double weight = 2;
+    }
+
+    repeated Weighted trees = 1;
+  }
+
+  message Leaf {
+    Path path = 1;
+  }
+  
+  oneof node {
+    Neg neg = 1;
+    Fail fail = 2;
+    Empty empty = 3;
+    Alt alt = 4;
+    Union union = 5;
+    Leaf leaf = 6;
+  }
+}
+
+message Dtab {
+  message Dentry {
+    message Prefix {
+      message Elem {
+        message Wildcard {}
+        oneof value {
+          Wildcard wildcard = 1;
+          bytes label = 2;
+        }
+      }
+      repeated Elem elems = 1;
+    }
+
+    Prefix prefix = 1;
+    PathNameTree dst = 2;
+  }
+
+  repeated Dentry dentries = 1;
+}
+
+/*
+ * Services
+ */
+
+/**
+ * A read-only interface (i.e. for interpreters in linkerd).
+ */
+service ReadSvc {
+
+  rpc Parse (ParseReq) returns (ParseRsp) {}
+  
+  // rpc GetDtab (DtabReq) returns (DtabRsp) {}
+  // rpc StreamDtab (DtabReq) returns (stream DtabRsp) {}
+
+  // rpc GetBoundTree (BindReq) returns (BoundTreeRsp) {}
+  // rpc StreamBoundTree (BindReq) returns (stream BoundTreeRsp) {}
+
+  // rpc GetAddr (AddrReq) returns (AddrRsp) {}
+  // rpc StreamAddr (AddrReq) returns (stream AddrRsp) {}
+
+  // rpc GetExplainedTree (ExplainTreeReq) returns (ExplainTreeRsp) {}
+  // rpc StreamExplainedTree (ExplainTreeReq) returns (stream ExplainTreeRsp) {}
+
+  // TODO GetNsList 
+  // TODO StreamNsList 
+}
+
+/*
+ * Parse -- parsing a DTAB from a string
+ */
+
+message ParseReq {
+  string text = 1;
+}
+
+message ParseRsp {
+
+  message Error {
+    string description = 1;
+
+    /** Offsets in bytes */
+    uint32 location = 2;
+  }
+
+  oneof result {
+    Dtab dtab = 1;
+    Error error = 2;
+  }
+}
+
+/*
+ * GetDtab, StreamDtab
+ */
+
+// message DtabReq {
+//   string label = 1;
+// }
+
+// message DtabRsp {
+//   oneof result {
+//     Dtab dtab = 1;
+//   }
+// }
+
+//TODO
+// service Controller {
+// }

@@ -1,10 +1,11 @@
+import pl.project13.scala.sbt.JmhPlugin
 import sbt._
 import sbt.Keys._
 import sbtassembly.AssemblyKeys._
 import sbtdocker.DockerKeys._
+import sbtprotobuf.ProtobufPlugin.protobufSettings
 import sbtunidoc.Plugin._
 import scoverage.ScoverageKeys._
-import pl.project13.scala.sbt.JmhPlugin
 
 object LinkerdBuild extends Base {
 
@@ -236,9 +237,17 @@ object LinkerdBuild extends Base {
         .withTwitterLibs(Deps.finagle("thrift"), Deps.finagle("thriftmux"))
         .withTests()
 
+      val grpcIdl = projectDir("namerd/iface/grpc-idl")
+        .settings(protobufSettings:_*)
+
+      val grpc = projectDir("namerd/iface/grpc")
+        .dependsOn(core)
+        .dependsOn(grpcIdl)
+        .dependsOn(Router.h2)
+
       val all = projectDir("namerd/iface")
         .settings(aggregateSettings)
-        .aggregate(controlHttp, interpreterThriftIdl, interpreterThrift)
+        .aggregate(controlHttp, interpreterThriftIdl, interpreterThrift, grpcIdl, grpc)
     }
 
     val main = projectDir("namerd/main")
@@ -288,6 +297,7 @@ object LinkerdBuild extends Base {
 
     val BundleProjects = Seq[ProjectReference](
       Namer.consul, Namer.k8s, Namer.marathon, Namer.serversets, Namer.zkLeader,
+      Iface.grpc,
       Interpreter.perHost, Interpreter.k8s,
       Storage.etcd, Storage.inMemory, Storage.k8s, Storage.zk, Storage.consul
     )
@@ -622,6 +632,8 @@ object LinkerdBuild extends Base {
   val namerdIfaceControlHttp = Namerd.Iface.controlHttp
   val namerdIfaceInterpreterThriftIdl = Namerd.Iface.interpreterThriftIdl
   val namerdIfaceInterpreterThrift = Namerd.Iface.interpreterThrift
+  val namerdIfaceGrpcIdl = Namerd.Iface.grpcIdl
+  val namerdIfaceGrpc = Namerd.Iface.grpc
   val namerdStorageEtcd = Namerd.Storage.etcd
   val namerdStorageInMemory = Namerd.Storage.inMemory
   val namerdStorageK8s = Namerd.Storage.k8s
