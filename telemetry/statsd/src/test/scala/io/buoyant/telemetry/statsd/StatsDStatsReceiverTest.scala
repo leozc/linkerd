@@ -47,13 +47,13 @@ class StatsDStatsReceiverTest extends FunSuite {
   }
 
   test("creates a stats receiver") {
-    val stats = new StatsDStatsReceiver(new NoOpStatsDClient)
+    val stats = new StatsDStatsReceiver(new NoOpStatsDClient, 1.0d)
     assert(stats.isInstanceOf[StatsDStatsReceiver])
   }
 
   test("stops StatsDClient on close") {
     val statsDClient = new MockStatsDClient
-    val stats = new StatsDStatsReceiver(statsDClient)
+    val stats = new StatsDStatsReceiver(statsDClient, 1.0d)
     assert(!statsDClient.stopped)
     stats.close()
     assert(statsDClient.stopped)

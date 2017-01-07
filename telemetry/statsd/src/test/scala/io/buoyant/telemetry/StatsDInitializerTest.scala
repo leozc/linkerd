@@ -29,7 +29,8 @@ class StatsDInitializerTest extends FunSuite {
          |prefix: linkerd
          |hostname: 127.0.0.1
          |port: 8125
-         |gaugePeriodMs: 10000
+         |exportIntervalMs: 10000
+         |histogramSampleRate: 1.0
          |""".stripMargin
 
     val config = Parser.objectMapper(yaml, Seq(LoadService[TelemeterInitializer]))

@@ -40,7 +40,8 @@ telemetry:
   prefix: linkerd
   hostname: 127.0.0.1
   port: 8125
-  gaugePeriodMs: 10000
+  exportIntervalMs: 10000
+  histogramSampleRate: 1.0
 ```
 
 kind: `io.l5d.statsd`
@@ -54,7 +55,8 @@ Key | Default Value | Description
 prefix | `linkerd` | String to prefix all exported metric names with.
 hostname | `127.0.0.1` | Hostname of the StatsD server.
 port | `8125` | Port of the StatsD server.
-gaugePeriodMs | `10000` | Interval to export Gauge stats, in milliseconds.
+exportIntervalMs | `10000` | Interval to export Counters and Gauges, in milliseconds.
+histogramSampleRate | `0.01` | Sample rate to export histogram events. Higher values will result in higher linkerd latency.
 
 ## TraceLog
 

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private[telemetry] class StatsDTelemeter(
   val stats: StatsDStatsReceiver,
-  gaugePeriodMs: Int,
+  exportIntervalMs: Int,
   timer: Timer
 ) extends Telemeter {
 
@@ -23,8 +23,8 @@ private[telemetry] class StatsDTelemeter(
     else Telemeter.nopRun
 
   private[this] def run0() = {
-    val task = timer.schedule(gaugePeriodMs.millis) {
-      stats.flushGauges
+    val task = timer.schedule(exportIntervalMs.millis) {
+      stats.flush
     }
 
     val closer = Closable.all(

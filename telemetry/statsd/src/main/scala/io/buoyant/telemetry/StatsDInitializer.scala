@@ -17,7 +17,8 @@ private[telemetry] object StatsDConfig {
   val DefaultPrefix = "linkerd"
   val DefaultHostname = "127.0.0.1"
   val DefaultPort = 8125
-  val DefaultGaugePeriodMs = 10000
+  val DefaultExportIntervalMs = 10000 // for counters and gauges
+  val DefaultSampleRate = 0.01d // for histograms
 
   val MaxQueueSize = 10000
   val ProcessId = "l5d-uuid-" + UUID.randomUUID().toString
@@ -27,7 +28,8 @@ case class StatsDConfig(
   prefix: Option[String],
   hostname: Option[String],
   port: Option[Int],
-  gaugePeriodMs: Option[Int]
+  exportIntervalMs: Option[Int],
+  histogramSampleRate: Option[Double]
 ) extends TelemeterConfig {
   import StatsDConfig._
 
@@ -37,20 +39,23 @@ case class StatsDConfig(
   val statsDPrefix = prefix.getOrElse(DefaultPrefix) + "_" + ProcessId
   val statsDHost = hostname.getOrElse(DefaultHostname)
   val statsDPort = port.getOrElse(DefaultPort)
+  val statsDInterval = exportIntervalMs.getOrElse(DefaultExportIntervalMs)
+  val statsDSampleRate = histogramSampleRate.getOrElse(DefaultSampleRate)
 
-  // initiate a UDP connection at startup time
-  log.info(s"connecting to StatsD at $statsDHost:$statsDPort as $statsDPrefix")
-  private[this] val statsDClient = new NonBlockingStatsDClient(
-    statsDPrefix,
-    statsDHost,
-    statsDPort,
-    MaxQueueSize
-  )
+  def mk(params: Stack.Params): StatsDTelemeter = {
+    // initiate a UDP connection at startup time
+    log.info(s"connecting to StatsD at $statsDHost:$statsDPort as $statsDPrefix")
+    val statsDClient = new NonBlockingStatsDClient(
+      statsDPrefix,
+      statsDHost,
+      statsDPort,
+      MaxQueueSize
+    )
 
-  def mk(params: Stack.Params): StatsDTelemeter =
     new StatsDTelemeter(
-      new StatsDStatsReceiver(statsDClient),
-      gaugePeriodMs.getOrElse(DefaultGaugePeriodMs),
+      new StatsDStatsReceiver(statsDClient, statsDSampleRate),
+      statsDInterval,
       DefaultTimer.twitter
     )
+  }
 }

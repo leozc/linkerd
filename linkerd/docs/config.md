@@ -44,7 +44,8 @@ telemetry:
   prefix: linkerd
   hostname: 127.0.0.1
   port: 8125
-  gaugePeriodMs: 10000
+  exportIntervalMs: 10000
+  histogramSampleRate: 0.01
 - kind: io.l5d.tracelog
   sampleRate: 0.2
   level: TRACE
@@ -132,7 +133,8 @@ telemetry:
   prefix: linkerd
   hostname: 127.0.0.1
   port: 8125
-  gaugePeriodMs: 10000
+  exportIntervalMs: 10000
+  histogramSampleRate: 0.01
 - kind: io.l5d.tracelog
   sampleRate: 0.2
   level: TRACE

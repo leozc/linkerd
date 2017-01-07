@@ -14,7 +14,7 @@ class MetricTest extends FunSuite {
       lastName = x$1
       lastValue = x$2.toString
     }
-    def recordExecutionTime(x$1: String, x$2: Long, x$3: String*): Unit = {
+    def recordExecutionTime(x$1: String, x$2: Long, x$3: Double, x$4: String*): Unit = {
       lastName = x$1
       lastValue = x$2.toString
     }
@@ -42,7 +42,7 @@ class MetricTest extends FunSuite {
     def incrementCounter(x$1: String, x$2: Double, x$3: String*): Unit = ???
     def incrementCounter(x$1: String, x$2: String*): Unit = ???
     def recordEvent(x$1: com.timgroup.statsd.Event, x$2: String*): Unit = ???
-    def recordExecutionTime(x$1: String, x$2: Long, x$3: Double, x$4: String*): Unit = ???
+    def recordExecutionTime(x$1: String, x$2: Long, x$3: String*): Unit = ???
     def recordGaugeValue(x$1: String, x$2: Long, x$3: Double, x$4: String*): Unit = ???
     def recordGaugeValue(x$1: String, x$2: Long, x$3: String*): Unit = ???
     def recordGaugeValue(x$1: String, x$2: Double, x$3: Double, x$4: String*): Unit = ???
@@ -58,22 +58,42 @@ class MetricTest extends FunSuite {
     def time(x$1: String, x$2: Long, x$3: String*): Unit = ???
   }
 
-  test("Count increments a statsd counter") {
+  test("Counter increments a statsd counter") {
     val name = "foo"
     val value = 123
     val statsDClient = new MockStatsDClient
     val counter = new Metric.Counter(statsDClient, name)
     counter.incr(value)
+    counter.send
 
     assert(statsDClient.lastName == name)
     assert(statsDClient.lastValue == value.toString)
+  }
+
+  test("Counter batches deltas on send") {
+    val name = "foo"
+    val value = 123
+    val statsDClient = new MockStatsDClient
+    val counter = new Metric.Counter(statsDClient, name)
+
+    counter.incr(value)
+    assert(statsDClient.lastName == "")
+    assert(statsDClient.lastValue == "")
+
+    counter.incr(value)
+    assert(statsDClient.lastName == "")
+    assert(statsDClient.lastValue == "")
+
+    counter.send
+    assert(statsDClient.lastName == name)
+    assert(statsDClient.lastValue == (value + value).toString)
   }
 
   test("Stat records a statsd execution time") {
     val name = "foo"
     val value = 123.4F
     val statsDClient = new MockStatsDClient
-    val stat = new Metric.Stat(statsDClient, name)
+    val stat = new Metric.Stat(statsDClient, name, 1.0d)
     stat.add(value)
 
     assert(statsDClient.lastName == name)

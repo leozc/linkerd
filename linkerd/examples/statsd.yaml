@@ -9,7 +9,8 @@ telemetry:
   prefix: linkerd
   hostname: 127.0.0.1
   port: 8125
-  gaugePeriodMs: 10000
+  exportIntervalMs: 10000
+  histogramSampleRate: 1.0 # for testing only, setting this to 1.0 will increase linkerd latency
 
 # An example service discovery backend that uses the filesystem to resolve endpoints.
 namers:
